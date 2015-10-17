@@ -1,0 +1,25 @@
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.DeserializationFeature
+
+case class Transfer(x: String, y: String)
+
+
+object Main {
+  def main(args: Array[String]) {
+    val conf = new SparkConf().setAppName("test").setMaster("local[*]")
+    val sc = new SparkContext(conf)
+
+   	val mapper = new ObjectMapper();
+  	val input = sc.textFile("/home/islam/spark-training-master/examples/formats/input/data.csv")
+	val result = input.flatMap(record => {
+	try {
+	Some(mapper.readValue(record, classOf[Transfer]))
+	} catch {
+	case e: Exception => None
+	}})
+	result.map(mapper.writeValueAsString(_)).saveAsTextFile("output1")
+  
+	}
+}
